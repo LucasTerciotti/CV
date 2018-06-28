@@ -1,0 +1,97 @@
+---
+title: "KNN Wine"
+author: "Lucas Terciotti"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(caret)
+library(tidyverse)
+```
+
+##Iniciando os dados:
+```{r}
+load("C:/Users/lucas/Desktop/Analise de Dados/CV/wine_data.Rdata")
+wine <- wine_df
+head(wine)
+str(wine)
+summary(wine)
+```
+
+Definindo V1 como fator por indicar de qual região o vinho provém:
+```{r}
+wine$V1 <- as.factor(wine$V1)
+```
+
+##Separacao: Treinamento e Teste
+A intenção é criar uma partição com distribuição semelhante entre treinamento e teste
+```{r}
+set.seed(300)
+indiceTrain <- createDataPartition(y = wine$V1, p = 0.75, list = FALSE) 
+training <- wine[indiceTrain,]
+testing <- wine[-indiceTrain,]
+```
+
+Gerar coluna na tabela indicando a qual grupo o dado pertence:
+```{r}
+wine$grupo = "Treinamento"
+wine$grupo[-indiceTrain]="Teste"
+head(select(wine, V1, grupo))
+```
+
+Verificara a distribuição dos dados de teste em relação aos dados de treinamento:
+```{r}
+m <- ggplot(data = wine, aes(x=V1,fill=grupo)) 
+m + geom_density(alpha=0.4)
+```
+
+##Preparação dos dados:
+É necessário normalizá-los, abaixo será feito isoladamente. Retiramos a coluna V1 que indica as classificações a serem preditas.
+```{r}
+trainX <- training[names(training) != "V1"]
+
+preProcValues <- preProcess(x = trainX,method = c("center", "scale"))
+preProcValues
+```
+
+Porém, o pacote carat permite implementar essa normalização no processamento completo abaixo:
+```{r}
+set.seed(400)
+ctrl <- trainControl(method = "repeatedcv",number= 10,repeats = 3)
+```
+Aqui testamos (repeats = 3, 5 e 10), além de alterar valores de k folders para 15 e 20 (10 default), e percebe-se o aumento no tempo de treinamento. 
+
+##Modelo:
+```{r}
+knnFit <- train(V1 ~ V2 +V3 +V4 +V5 +V6 +V7 +V8 +V9 +V10 +V11+ V12+ V13 +V14, data = training,
+                method = "knn",
+                trControl = ctrl,
+                preProcess = c("center","scale"),
+                tuneLength = 20)
+
+knnFit
+```
+
+O ideal a ser usado nesse caso seria k=25, atingindo uma acurácia de 0.9778.
+
+```{r}
+confusionMatrix(knnFit)
+```
+
+###Plot:
+```{r}
+plot(knnFit)
+```
+
+##Previsao:
+```{r}
+knnpredict <- predict(knnFit, newdata = testing)
+table(knnpredict,testing$V1)
+prop.table(table(knnpredict,testing$V1))
+```
+
+Aplicando o modelo no grupo de teste, atingimos uma acurácia das previsões de 0.9302326.
