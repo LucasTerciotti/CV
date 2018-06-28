@@ -39,12 +39,24 @@ help("trainControl")
 #testado repeats = 3, 5 e 10, , além de alterar valores de k folders para 15 e 20 (10 default),
 #e percebe-se o aumento no tempo de treinamento
 
+
 knnFit <- train(V1 ~ V2 +V3 +V4 +V5 +V6 +V7 +V8 +V9 +V10 +V11+ V12+ V13 +V14, data = training,
                 method = "knn",
                 trControl = ctrl,
                 preProcess = c("center","scale"),
                 tuneLength = 20)
 knnFit
+
+gridK <- expand.grid( k = c(15:25) )
+knnFit <- train(V1 ~ V2 +V3 +V4 +V5 +V6 +V7 +V8 +V9 +V10 +V11+ V12+ V13 +V14, data = training,
+                method = "knn",
+                trControl = ctrl,
+                preProcess = c("center","scale"),
+                )
+knnFit
+
+help(train)
+#alterações a serem feitas aqui:
 
 #Ao rodar repetidas vezes o algoritmo acima, pode-se perceber que 
 #o valor varia. De acordo com a análise final, o k ideal era: k = 25
@@ -63,7 +75,8 @@ confusionMatrix(knnFit)
 #       2    0.1 37.7  0.0
 #       3    0.0  1.5 26.7
 
-#Accuracy (average) : 0.9763
+#Accuracy (average) : 0.9763 - isso com base nos próprios dados de treinamento. Devemos agora aplicar no
+#grupo de teste. Ir para adendo da aula 19/06.
 
 plot(knnFit)
 
@@ -75,3 +88,32 @@ help("train")
 #http://topepo.github.io/caret/available-models.html. (NOTE: If given, this argument must be named.)
 
 plot(knnFit)
+
+#Aula 19/06:
+knnpredict <- predict(knnFit, newdata = testing)
+table(knnpredict,testing$V1)
+prop.table(table(knnpredict,testing$V1))
+#Sensibilidade = acertos positivos / total de positivos -> TP/(TP+FN)
+#Especificidade = acertos negativos / total de negativos -> TN/(TN+FP)
+#eficiência = (sensi+espec)/2
+
+0.32558140 + 0.32558140 + 0.27906977
+#0.9302326 - Acurácia ao aplicar o modelo aos dados de teste
+
+#grafico de análise de sensibilidade vs especificidade: curva ROC
+
+#dataset de câncer de mama:
+#pior um falso positivo ou um falso negativo?
+#Ser um falso negativo nesse caso indicaria que a pessoa tem cancer, porem foi diagnosticada como
+#saudavel. Entao nao quero que meu modelo tenha esse problema.
+
+#todos como nao recorrentes: acurácia boa, porem modelo ruim. :/
+#e o inverso: acuracia ruim, modelo tambem ruim
+
+#paradoxo da acuracia: observar desequilibrio entre classes
+#medidas adicionais para avaliar um classificador
+
+#precisão: acertos positivos/total de predições positivas -> TP/(TP+FP)
+#F1 score: meio termo entre sensi e precisao
+
+#KAPPA: concordância entre dois observadores
