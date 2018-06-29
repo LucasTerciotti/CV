@@ -27,7 +27,7 @@ Definindo V1 como fator por indicar de qual região o vinho provém:
 wine$V1 <- as.factor(wine$V1)
 ```
 
-##Separacao: Treinamento e Teste
+##Separação: Treinamento e Teste
 A intenção é criar uma partição com distribuição semelhante entre treinamento e teste
 ```{r}
 set.seed(300)
@@ -43,14 +43,14 @@ wine$grupo[-indiceTrain]="Teste"
 head(select(wine, V1, grupo))
 ```
 
-Verificara a distribuição dos dados de teste em relação aos dados de treinamento:
+Verificarar a distribuição dos dados de teste em relação aos dados de treinamento:
 ```{r}
 m <- ggplot(data = wine, aes(x=V1,fill=grupo)) 
 m + geom_density(alpha=0.4)
 ```
 
 ##Preparação dos dados:
-É necessário normalizá-los, abaixo será feito isoladamente. Retiramos a coluna V1 que indica as classificações a serem preditas.
+É necessário normalizá-los, abaixo será feito isoladamente. Retiramos a coluna V1, que indica as classificações a serem preditas.
 ```{r}
 trainX <- training[names(training) != "V1"]
 
